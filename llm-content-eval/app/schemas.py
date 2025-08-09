@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from datetime import datetime
 from app.models import ModelProvider, ContentType, PromptStrategy
 
@@ -103,8 +103,8 @@ class AnalysisSummary(BaseModel):
     total_generations: int
     total_evaluations: int
     avg_scores: Dict[str, float]
-    best_combination: Dict[str, any]
-    worst_combination: Dict[str, any]
+    best_combination: Dict[str, Any]
+    worst_combination: Dict[str, Any]
     total_cost: float
     avg_latency_ms: float
 
