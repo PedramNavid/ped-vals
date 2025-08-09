@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Evaluate Content - LLM Content Evaluation{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Blind Content Evaluation</h1>
+    
+    <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <div class="mb-4">
+            <span class="text-sm text-gray-500">Task:</span>
+            <h2 class="text-xl font-semibold" id="task-title">Loading...</h2>
+            <p class="text-gray-600" id="task-description"></p>
+        </div>
+        
+        <div class="border-t pt-4">
+            <h3 class="font-semibold mb-2">Generated Content:</h3>
+            <div class="prose max-w-none bg-gray-50 p-4 rounded" id="content">
+                Loading content...
+            </div>
+        </div>
+    </div>
+    
+    <form id="evaluation-form" class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4">Evaluation Scores (1-5 scale)</h3>
+        
+        <input type="hidden" id="blind-id">
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Voice/Style Match</label>
+                <select name="voice_match" required class="w-full border rounded px-3 py-2">
+                    <option value="">Select...</option>
+                    <option value="1">1 - Not at all</option>
+                    <option value="2">2 - Slightly</option>
+                    <option value="3">3 - Somewhat</option>
+                    <option value="4">4 - Mostly</option>
+                    <option value="5">5 - Perfect match</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1">Coherence & Flow</label>
+                <select name="coherence" required class="w-full border rounded px-3 py-2">
+                    <option value="">Select...</option>
+                    <option value="1">1 - Poor</option>
+                    <option value="2">2 - Below average</option>
+                    <option value="3">3 - Average</option>
+                    <option value="4">4 - Good</option>
+                    <option value="5">5 - Excellent</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1">Engaging/Compelling</label>
+                <select name="engaging" required class="w-full border rounded px-3 py-2">
+                    <option value="">Select...</option>
+                    <option value="1">1 - Not engaging</option>
+                    <option value="2">2 - Slightly engaging</option>
+                    <option value="3">3 - Moderately engaging</option>
+                    <option value="4">4 - Very engaging</option>
+                    <option value="5">5 - Extremely engaging</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1">Meets Brief Requirements</label>
+                <select name="meets_brief" required class="w-full border rounded px-3 py-2">
+                    <option value="">Select...</option>
+                    <option value="1">1 - Misses completely</option>
+                    <option value="2">2 - Misses key points</option>
+                    <option value="3">3 - Partially meets</option>
+                    <option value="4">4 - Mostly meets</option>
+                    <option value="5">5 - Fully meets</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Overall Quality</label>
+            <select name="overall_quality" required class="w-full border rounded px-3 py-2">
+                <option value="">Select...</option>
+                <option value="1">1 - Poor</option>
+                <option value="2">2 - Below average</option>
+                <option value="3">3 - Average</option>
+                <option value="4">4 - Good</option>
+                <option value="5">5 - Excellent</option>
+            </select>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Estimated Edit Time (minutes)</label>
+                <input type="number" name="edit_time_minutes" min="0" required 
+                    class="w-full border rounded px-3 py-2">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1">Would Publish?</label>
+                <select name="would_publish" required class="w-full border rounded px-3 py-2">
+                    <option value="">Select...</option>
+                    <option value="yes">Yes, as is</option>
+                    <option value="with_edits">Yes, with edits</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Notes (Optional)</label>
+            <textarea name="notes" rows="3" 
+                class="w-full border rounded px-3 py-2"
+                placeholder="Any additional observations..."></textarea>
+        </div>
+        
+        <div class="flex justify-between">
+            <button type="button" onclick="skipItem()" 
+                class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+                Skip for Now
+            </button>
+            <button type="submit" 
+                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                Submit & Next
+            </button>
+        </div>
+    </form>
+    
+    <div class="mt-6 text-center">
+        <div class="text-sm text-gray-500">
+            Progress: <span id="progress">0</span> / <span id="total">0</span> evaluated
+        </div>
+        <button onclick="finishEvaluation()" 
+            class="mt-2 text-blue-600 hover:text-blue-800 text-sm">
+            Finish and View Results
+        </button>
+    </div>
+</div>
+
+<script>
+const experimentId = {{ experiment_id }};
+let currentBlindId = null;
+let evaluationStartTime = null;
+
+async function loadNextItem() {
+    try {
+        const response = await fetch(`/api/evaluations/next/${experimentId}`);
+        
+        if (!response.ok) {
+            document.getElementById('content').innerHTML = 'No more items to evaluate!';
+            document.getElementById('evaluation-form').style.display = 'none';
+            updateProgress();
+            return;
+        }
+        
+        const item = await response.json();
+        
+        if (!item) {
+            document.getElementById('content').innerHTML = 'No more items to evaluate!';
+            document.getElementById('evaluation-form').style.display = 'none';
+            updateProgress();
+            return;
+        }
+        
+        // Update UI
+        currentBlindId = item.blind_id;
+        document.getElementById('blind-id').value = item.blind_id;
+        document.getElementById('task-title').textContent = item.task_title;
+        document.getElementById('task-description').textContent = item.task_description;
+        document.getElementById('content').innerHTML = item.content.replace(/\n/g, '<br>');
+        
+        // Reset form
+        document.getElementById('evaluation-form').reset();
+        document.getElementById('blind-id').value = item.blind_id;
+        
+        // Start timer
+        evaluationStartTime = Date.now();
+        
+        // Update progress
+        updateProgress();
+    } catch (error) {
+        console.error('Error loading item:', error);
+    }
+}
+
+async function updateProgress() {
+    try {
+        const response = await fetch(`/api/evaluations/progress/${experimentId}`);
+        const progress = await response.json();
+        
+        document.getElementById('progress').textContent = progress.completed;
+        document.getElementById('total').textContent = progress.total;
+    } catch (error) {
+        console.error('Error updating progress:', error);
+    }
+}
+
+document.getElementById('evaluation-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const evaluationTime = evaluationStartTime ? Math.floor((Date.now() - evaluationStartTime) / 1000) : null;
+    
+    const data = {
+        blind_id: currentBlindId,
+        voice_match: parseInt(formData.get('voice_match')),
+        coherence: parseInt(formData.get('coherence')),
+        engaging: parseInt(formData.get('engaging')),
+        meets_brief: parseInt(formData.get('meets_brief')),
+        overall_quality: parseInt(formData.get('overall_quality')),
+        edit_time_minutes: parseInt(formData.get('edit_time_minutes')),
+        would_publish: formData.get('would_publish'),
+        notes: formData.get('notes') || ''
+    };
+    
+    try {
+        const response = await fetch(`/api/evaluations/?evaluation_time_seconds=${evaluationTime}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            // Load next item
+            loadNextItem();
+        } else {
+            const error = await response.json();
+            alert('Error submitting evaluation: ' + error.detail);
+        }
+    } catch (error) {
+        console.error('Error submitting evaluation:', error);
+        alert('Error submitting evaluation');
+    }
+});
+
+async function skipItem() {
+    if (currentBlindId) {
+        try {
+            await fetch(`/api/evaluations/skip/${currentBlindId}`, {
+                method: 'POST'
+            });
+            loadNextItem();
+        } catch (error) {
+            console.error('Error skipping item:', error);
+        }
+    }
+}
+
+function finishEvaluation() {
+    if (confirm('Are you sure you want to finish evaluation and view results?')) {
+        window.location.href = `/results/${experimentId}`;
+    }
+}
+
+// Load first item on page load
+document.addEventListener('DOMContentLoaded', loadNextItem);
+</script>
+{% endblock %}

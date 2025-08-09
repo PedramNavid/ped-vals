@@ -1,0 +1,52 @@
+{
+  "tasks": [
+    {
+      "id": "A",
+      "content_type": "blog_intro",
+      "title": "B2B Storytelling",
+      "description": "Write an intro for a blog post about why B2B companies struggle with authentic storytelling",
+      "structured_prompt": "Write a compelling blog post introduction about why B2B companies struggle with authentic storytelling. Requirements:\n- Target audience: B2B marketing leaders and executives\n- Tone: Professional but conversational, thought-provoking\n- Length: 150-200 words\n- Include: A relatable problem statement, a surprising insight or statistic, and a clear thesis\n- Goal: Hook readers to continue reading about storytelling solutions\n- End with: A transition that previews the value they'll get from the full article",
+      "example_prompt_template": "Here are two examples of my writing style:\n\n{sample1}\n\n{sample2}\n\nAnalyze the style of these examples, noting:\n- Sentence structure and rhythm\n- Vocabulary and terminology choices\n- How ideas flow and connect\n- Opening and closing techniques\n- Overall voice and personality\n\nNow, write a compelling blog post introduction about why B2B companies struggle with authentic storytelling while matching the style, voice, and approach demonstrated in the examples above. Maintain the same level of sophistication and personality."
+    },
+    {
+      "id": "B",
+      "content_type": "blog_intro", 
+      "title": "Digital Transformation Costs",
+      "description": "Write an intro for a blog post about the hidden costs of delaying digital transformation",
+      "structured_prompt": "Write a compelling blog post introduction about the hidden costs of delaying digital transformation. Requirements:\n- Target audience: C-suite executives in traditional industries\n- Tone: Urgent but not alarmist, data-informed\n- Length: 150-200 words\n- Include: A specific example or scenario, mention of competitive pressure, and opportunity cost\n- Goal: Create urgency without fear-mongering\n- End with: A promise of actionable insights in the article",
+      "example_prompt_template": "Here are two examples of my writing style:\n\n{sample1}\n\n{sample2}\n\nAnalyze the style of these examples, noting:\n- Sentence structure and rhythm\n- Vocabulary and terminology choices\n- How ideas flow and connect\n- Opening and closing techniques\n- Overall voice and personality\n\nNow, write a compelling blog post introduction about the hidden costs of delaying digital transformation while matching the style, voice, and approach demonstrated in the examples above. Maintain the same level of sophistication and personality."
+    },
+    {
+      "id": "C",
+      "content_type": "linkedin",
+      "title": "Failure Lesson",
+      "description": "Create a LinkedIn post about a lesson learned from a failed project",
+      "structured_prompt": "Create a LinkedIn post about a lesson learned from a failed project or initiative. Requirements:\n- Target audience: Professional network, industry peers\n- Tone: Vulnerable but professional, educational\n- Length: 200-250 words\n- Include: Brief context of the failure, specific lesson learned, how you apply it now\n- Structure: Hook opening, story, lesson, call for engagement\n- Goal: Build thought leadership through authenticity\n- End with: A question to encourage comments",
+      "example_prompt_template": "Here are two examples of my writing style:\n\n{sample1}\n\n{sample2}\n\nAnalyze the style of these examples, noting:\n- Sentence structure and rhythm\n- Vocabulary and terminology choices\n- How ideas flow and connect\n- Opening and closing techniques\n- Overall voice and personality\n\nNow, create a LinkedIn post about a lesson learned from a failed project or initiative while matching the style, voice, and approach demonstrated in the examples above. Maintain the same level of sophistication and personality."
+    },
+    {
+      "id": "D",
+      "content_type": "linkedin",
+      "title": "Industry Trend",
+      "description": "Create a LinkedIn post about a new industry trend or insight",
+      "structured_prompt": "Create a LinkedIn post announcing a new industry trend or insight you've discovered. Requirements:\n- Target audience: Industry professionals and decision-makers\n- Tone: Confident, insightful, accessible\n- Length: 200-250 words\n- Include: The trend/insight, supporting evidence or example, implications for the industry\n- Structure: Bold claim opening, evidence, what this means, action item\n- Goal: Position as thought leader and generate discussion\n- End with: Call-to-action or thought-provoking question",
+      "example_prompt_template": "Here are two examples of my writing style:\n\n{sample1}\n\n{sample2}\n\nAnalyze the style of these examples, noting:\n- Sentence structure and rhythm\n- Vocabulary and terminology choices\n- How ideas flow and connect\n- Opening and closing techniques\n- Overall voice and personality\n\nNow, create a LinkedIn post announcing a new industry trend or insight you've discovered while matching the style, voice, and approach demonstrated in the examples above. Maintain the same level of sophistication and personality."
+    },
+    {
+      "id": "E",
+      "content_type": "announcement",
+      "title": "AI Feature Launch",
+      "description": "Write an announcement for a new AI-powered feature launch",
+      "structured_prompt": "Write an announcement for a new AI-powered feature or service launch. Requirements:\n- Target audience: Current customers and prospects\n- Tone: Excited but not hyperbolic, benefit-focused\n- Length: 150-200 words\n- Include: The problem it solves, key capabilities, specific use case, availability\n- Structure: Problem/solution opening, key benefits, proof point, next steps\n- Goal: Drive interest and sign-ups/demos\n- Avoid: Technical jargon, overpromising on AI capabilities",
+      "example_prompt_template": "Here are two examples of my writing style:\n\n{sample1}\n\n{sample2}\n\nAnalyze the style of these examples, noting:\n- Sentence structure and rhythm\n- Vocabulary and terminology choices\n- How ideas flow and connect\n- Opening and closing techniques\n- Overall voice and personality\n\nNow, write an announcement for a new AI-powered feature or service launch while matching the style, voice, and approach demonstrated in the examples above. Maintain the same level of sophistication and personality."
+    },
+    {
+      "id": "F",
+      "content_type": "announcement",
+      "title": "Company Milestone",
+      "description": "Write an announcement for a company milestone or achievement",
+      "structured_prompt": "Write an announcement for a company milestone or achievement. Requirements:\n- Target audience: Customers, investors, employees, and industry watchers\n- Tone: Proud but humble, forward-looking\n- Length: 150-200 words\n- Include: Specific achievement, what made it possible, what it means for stakeholders\n- Structure: Achievement statement, context/journey, credit to team/customers, vision forward\n- Goal: Build credibility and momentum\n- End with: Forward-looking statement about what's next",
+      "example_prompt_template": "Here are two examples of my writing style:\n\n{sample1}\n\n{sample2}\n\nAnalyze the style of these examples, noting:\n- Sentence structure and rhythm\n- Vocabulary and terminology choices\n- How ideas flow and connect\n- Opening and closing techniques\n- Overall voice and personality\n\nNow, write an announcement for a company milestone or achievement while matching the style, voice, and approach demonstrated in the examples above. Maintain the same level of sophistication and personality."
+    }
+  ]
+}

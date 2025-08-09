@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Setup Experiment - LLM Content Evaluation{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Create New Experiment</h1>
+    
+    <form id="experiment-form" class="space-y-6">
+        <!-- Basic Information -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-lg font-semibold mb-4">Basic Information</h2>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Experiment Name
+                </label>
+                <input type="text" id="name" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., Q1 2024 Content Style Test">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Description (Optional)
+                </label>
+                <textarea id="description" rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Describe the purpose of this experiment..."></textarea>
+            </div>
+        </div>
+
+        <!-- Baseline Samples -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-lg font-semibold mb-4">Baseline Writing Samples</h2>
+            <p class="text-sm text-gray-600 mb-4">
+                Provide 2-3 examples of your writing style for the AI to learn from.
+            </p>
+            
+            <div id="samples-container" class="space-y-4">
+                <div class="sample-input">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Sample 1
+                    </label>
+                    <textarea class="sample-text w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+                        rows="4" required
+                        placeholder="Paste a sample of your writing here..."></textarea>
+                </div>
+                <div class="sample-input">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Sample 2
+                    </label>
+                    <textarea class="sample-text w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+                        rows="4" required
+                        placeholder="Paste another sample of your writing here..."></textarea>
+                </div>
+            </div>
+            
+            <button type="button" onclick="addSample()" class="mt-4 text-blue-600 hover:text-blue-800 text-sm">
+                + Add Another Sample
+            </button>
+        </div>
+
+        <!-- Model Selection -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-lg font-semibold mb-4">Select Models</h2>
+            
+            <div class="space-y-3">
+                <label class="flex items-center">
+                    <input type="checkbox" name="model" value="openai:gpt-4-turbo-preview" 
+                        class="mr-3 rounded text-blue-600">
+                    <span>OpenAI GPT-4 Turbo</span>
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" name="model" value="anthropic:claude-3-opus-20240229" 
+                        class="mr-3 rounded text-blue-600">
+                    <span>Anthropic Claude 3 Opus</span>
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" name="model" value="google:gemini-1.5-pro" 
+                        class="mr-3 rounded text-blue-600">
+                    <span>Google Gemini 1.5 Pro</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Prompt Strategy Selection -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-lg font-semibold mb-4">Select Prompt Strategies</h2>
+            
+            <div class="space-y-3">
+                <label class="flex items-start">
+                    <input type="checkbox" name="strategy" value="structured" 
+                        class="mr-3 mt-1 rounded text-blue-600">
+                    <div>
+                        <span class="font-medium">Structured Prompting</span>
+                        <p class="text-sm text-gray-600">Clear requirements and constraints</p>
+                    </div>
+                </label>
+                <label class="flex items-start">
+                    <input type="checkbox" name="strategy" value="example_based" 
+                        class="mr-3 mt-1 rounded text-blue-600">
+                    <div>
+                        <span class="font-medium">Example-Based Prompting</span>
+                        <p class="text-sm text-gray-600">Learn from your writing samples</p>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Task Selection -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-lg font-semibold mb-4">Select Tasks</h2>
+            
+            <div id="tasks-container" class="space-y-3">
+                <!-- Tasks will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex justify-between">
+            <a href="/" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                Cancel
+            </a>
+            <button type="submit" 
+                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                Create Experiment
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+let sampleCount = 2;
+
+function addSample() {
+    sampleCount++;
+    const container = document.getElementById('samples-container');
+    const div = document.createElement('div');
+    div.className = 'sample-input';
+    div.innerHTML = `
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+            Sample ${sampleCount}
+        </label>
+        <textarea class="sample-text w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+            rows="4"
+            placeholder="Paste another sample of your writing here..."></textarea>
+    `;
+    container.appendChild(div);
+}
+
+async function loadTasks() {
+    try {
+        const response = await fetch('/api/experiments/tasks/all');
+        const tasks = await response.json();
+        
+        const container = document.getElementById('tasks-container');
+        container.innerHTML = '';
+        
+        tasks.forEach(task => {
+            const label = document.createElement('label');
+            label.className = 'flex items-start';
+            label.innerHTML = `
+                <input type="checkbox" name="task" value="${task.id}" 
+                    class="mr-3 mt-1 rounded text-blue-600">
+                <div>
+                    <span class="font-medium">${task.id}: ${task.title}</span>
+                    <p class="text-sm text-gray-600">${task.description}</p>
+                    <span class="text-xs text-gray-500">${task.content_type}</span>
+                </div>
+            `;
+            container.appendChild(label);
+        });
+    } catch (error) {
+        console.error('Error loading tasks:', error);
+    }
+}
+
+document.getElementById('experiment-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Collect form data
+    const name = document.getElementById('name').value;
+    const description = document.getElementById('description').value;
+    
+    // Collect samples
+    const samples = Array.from(document.querySelectorAll('.sample-text'))
+        .map(el => el.value)
+        .filter(text => text.trim());
+    
+    // Collect selected models
+    const models = Array.from(document.querySelectorAll('input[name="model"]:checked'))
+        .map(el => {
+            const [provider, model] = el.value.split(':');
+            return { provider, model };
+        });
+    
+    // Collect selected strategies
+    const strategies = Array.from(document.querySelectorAll('input[name="strategy"]:checked'))
+        .map(el => el.value);
+    
+    // Collect selected tasks
+    const tasks = Array.from(document.querySelectorAll('input[name="task"]:checked'))
+        .map(el => el.value);
+    
+    // Validate
+    if (samples.length < 2) {
+        alert('Please provide at least 2 writing samples');
+        return;
+    }
+    
+    if (models.length === 0) {
+        alert('Please select at least one model');
+        return;
+    }
+    
+    if (strategies.length === 0) {
+        alert('Please select at least one prompt strategy');
+        return;
+    }
+    
+    if (tasks.length === 0) {
+        alert('Please select at least one task');
+        return;
+    }
+    
+    // Submit
+    try {
+        const response = await fetch('/api/experiments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name,
+                description,
+                baseline_samples: samples,
+                selected_models: models,
+                selected_strategies: strategies,
+                selected_tasks: tasks
+            })
+        });
+        
+        if (response.ok) {
+            const experiment = await response.json();
+            window.location.href = `/generate/${experiment.id}`;
+        } else {
+            const error = await response.json();
+            alert('Error creating experiment: ' + error.detail);
+        }
+    } catch (error) {
+        console.error('Error creating experiment:', error);
+        alert('Error creating experiment');
+    }
+});
+
+// Load tasks on page load
+document.addEventListener('DOMContentLoaded', loadTasks);
+</script>
+{% endblock %}

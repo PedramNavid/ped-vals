@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Content - LLM Content Evaluation{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Content Generation</h1>
+    
+    <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h2 class="text-lg font-semibold mb-4">Experiment Details</h2>
+        <div id="experiment-info" class="text-gray-600">
+            Loading experiment details...
+        </div>
+    </div>
+    
+    <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h2 class="text-lg font-semibold mb-4">Generation Progress</h2>
+        
+        <div class="mb-4">
+            <div class="flex justify-between text-sm text-gray-600 mb-1">
+                <span>Progress</span>
+                <span id="progress-text">0 / 0</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <span class="text-gray-500">Status:</span>
+                <span id="status" class="ml-2 font-medium">--</span>
+            </div>
+            <div>
+                <span class="text-gray-500">Failed:</span>
+                <span id="failed" class="ml-2 font-medium">0</span>
+            </div>
+            <div>
+                <span class="text-gray-500">Total Cost:</span>
+                <span id="total-cost" class="ml-2 font-medium">$0.00</span>
+            </div>
+            <div>
+                <span class="text-gray-500">Avg Latency:</span>
+                <span id="avg-latency" class="ml-2 font-medium">-- ms</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h2 class="text-lg font-semibold mb-4">Generation Log</h2>
+        <div id="generation-log" class="h-64 overflow-y-auto text-sm font-mono bg-gray-50 p-3 rounded">
+            Waiting to start...
+        </div>
+    </div>
+    
+    <div class="flex justify-between">
+        <a href="/" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+            Back to Dashboard
+        </a>
+        <div class="space-x-3">
+            <button id="start-btn" onclick="startGeneration()" 
+                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                Start Generation
+            </button>
+            <button id="continue-btn" onclick="continueToEvaluation()" 
+                class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hidden">
+                Continue to Evaluation
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+const experimentId = {{ experiment_id }};
+let progressInterval;
+
+async function loadExperimentInfo() {
+    try {
+        const response = await fetch(`/api/experiments/${experimentId}`);
+        const experiment = await response.json();
+        
+        const infoDiv = document.getElementById('experiment-info');
+        infoDiv.innerHTML = `
+            <p><strong>Name:</strong> ${experiment.name}</p>
+            <p><strong>Models:</strong> ${experiment.selected_models.length} selected</p>
+            <p><strong>Strategies:</strong> ${experiment.selected_strategies.join(', ')}</p>
+            <p><strong>Tasks:</strong> ${experiment.selected_tasks.length} selected</p>
+            <p><strong>Total Combinations:</strong> ${
+                experiment.selected_models.length * 
+                experiment.selected_strategies.length * 
+                experiment.selected_tasks.length
+            }</p>
+        `;
+    } catch (error) {
+        console.error('Error loading experiment:', error);
+    }
+}
+
+async function startGeneration() {
+    const startBtn = document.getElementById('start-btn');
+    startBtn.disabled = true;
+    startBtn.textContent = 'Generating...';
+    
+    addLogEntry('Starting generation process...');
+    
+    try {
+        const response = await fetch('/api/generations/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                experiment_id: experimentId,
+                run_all: true
+            })
+        });
+        
+        if (response.ok) {
+            addLogEntry('Generation started successfully');
+            startProgressMonitoring();
+        } else {
+            addLogEntry('Error starting generation');
+            startBtn.disabled = false;
+            startBtn.textContent = 'Start Generation';
+        }
+    } catch (error) {
+        console.error('Error starting generation:', error);
+        addLogEntry('Error: ' + error.message);
+        startBtn.disabled = false;
+        startBtn.textContent = 'Start Generation';
+    }
+}
+
+function startProgressMonitoring() {
+    updateProgress();
+    progressInterval = setInterval(updateProgress, 2000);
+}
+
+async function updateProgress() {
+    try {
+        const response = await fetch(`/api/generations/progress/${experimentId}`);
+        const progress = await response.json();
+        
+        // Update progress bar
+        const percentage = progress.percentage || 0;
+        document.getElementById('progress-bar').style.width = percentage + '%';
+        document.getElementById('progress-text').textContent = `${progress.completed} / ${progress.total}`;
+        
+        // Update status
+        document.getElementById('status').textContent = progress.status;
+        document.getElementById('failed').textContent = progress.failed || 0;
+        
+        // Check if complete
+        if (progress.status === 'evaluating' || progress.completed === progress.total) {
+            clearInterval(progressInterval);
+            document.getElementById('start-btn').classList.add('hidden');
+            document.getElementById('continue-btn').classList.remove('hidden');
+            addLogEntry('Generation complete! Ready for evaluation.');
+            
+            // Load generation stats
+            loadGenerationStats();
+        }
+    } catch (error) {
+        console.error('Error updating progress:', error);
+    }
+}
+
+async function loadGenerationStats() {
+    try {
+        const response = await fetch(`/api/generations/${experimentId}`);
+        const generations = await response.json();
+        
+        // Calculate stats
+        const totalCost = generations.reduce((sum, g) => sum + (g.cost_usd || 0), 0);
+        const avgLatency = generations.reduce((sum, g) => sum + (g.latency_ms || 0), 0) / generations.length;
+        
+        document.getElementById('total-cost').textContent = `$${totalCost.toFixed(4)}`;
+        document.getElementById('avg-latency').textContent = `${avgLatency.toFixed(0)} ms`;
+        
+        // Log summary
+        const byModel = {};
+        generations.forEach(g => {
+            const key = `${g.model_provider}/${g.model_name}`;
+            byModel[key] = (byModel[key] || 0) + 1;
+        });
+        
+        addLogEntry('Generation Summary:');
+        Object.entries(byModel).forEach(([model, count]) => {
+            addLogEntry(`  ${model}: ${count} generations`);
+        });
+    } catch (error) {
+        console.error('Error loading stats:', error);
+    }
+}
+
+function addLogEntry(message) {
+    const log = document.getElementById('generation-log');
+    const timestamp = new Date().toLocaleTimeString();
+    log.innerHTML += `[${timestamp}] ${message}\n`;
+    log.scrollTop = log.scrollHeight;
+}
+
+function continueToEvaluation() {
+    window.location.href = `/evaluate/${experimentId}`;
+}
+
+// Load experiment info on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadExperimentInfo();
+    updateProgress();
+});
+</script>
+{% endblock %}
